@@ -1,0 +1,61 @@
+@import "tailwindcss";
+
+@theme {
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  --color-bg: #0a0e12;
+  --color-surface: #12181f;
+  --color-surface-2: #171e26;
+  --color-border: #232b34;
+  --color-border-soft: #1a212a;
+  --color-text: #e7ecf0;
+  --color-muted: #7c8894;
+  --color-muted-2: #4f5a66;
+
+  /* Job/queue state signal colors - each maps 1:1 to a status so the
+     dashboard reads as a color-coded instrument panel, not decoration. */
+  --color-signal-running: #5eead4;
+  --color-signal-success: #9ae66e;
+  --color-signal-warning: #f0b429;
+  --color-signal-danger: #fb5b5b;
+  --color-signal-pending: #a78bfa;
+  --color-signal-idle: #64748b;
+}
+
+@layer base {
+  html {
+    background: var(--color-bg);
+    color: var(--color-text);
+  }
+  body {
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection {
+    background: var(--color-signal-running);
+    color: #05221d;
+  }
+  * {
+    scrollbar-color: var(--color-border) transparent;
+  }
+}
+
+@layer utilities {
+  .font-data {
+    font-family: var(--font-mono);
+    font-feature-settings: "tnum" 1, "zero" 1;
+  }
+  .in {
+    width: 100%;
+    border-radius: 0.375rem;
+    border: 1px solid var(--color-border);
+    background: var(--color-surface-2);
+    padding: 0.5rem 0.65rem;
+    font-size: 0.875rem;
+    outline: none;
+  }
+  .in:focus {
+    border-color: var(--color-signal-running);
+  }
+}

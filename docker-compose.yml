@@ -1,0 +1,87 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: jobscheduler
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  migrate:
+    build: ./backend
+    command: node db/migrate.js
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/jobscheduler
+    restart: "no"
+
+  api:
+    build: ./backend
+    command: node src/index.js
+    ports:
+      - "4000:4000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/jobscheduler
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: change-this-in-production
+      JWT_EXPIRES_IN: 24h
+      PORT: 4000
+      NODE_ENV: production
+      CORS_ORIGIN: "*"
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+
+  worker:
+    build: ./backend
+    command: node src/worker.js
+    depends_on:
+      - api
+    environment:
+      API_URL: http://api:4000
+      PROJECT_API_KEY: ${PROJECT_API_KEY}
+      WORKER_QUEUES: ${WORKER_QUEUES:-default}
+      WORKER_CONCURRENCY: 5
+      WORKER_POLL_INTERVAL_MS: 1000
+    deploy:
+      replicas: 2
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: http://localhost:4000
+    ports:
+      - "5173:80"
+    depends_on:
+      - api
+
+volumes:
+  pgdata:
