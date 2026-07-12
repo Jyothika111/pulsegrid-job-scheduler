@@ -16,7 +16,8 @@ services:
     dockerfilePath: ./backend/Dockerfile
     dockerContext: ./backend
     plan: free
-    dockerCommand: node -e "require('child_process').execSync('node db/migrate.js', {stdio: 'inherit'}); require('./src/index.js')"
+    dockerCommand: node src/index.js
+    preDeployCommand: node db/migrate.js
     envVars:
       - key: DATABASE_URL
         fromDatabase:
