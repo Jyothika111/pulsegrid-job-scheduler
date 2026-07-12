@@ -40,21 +40,4 @@ services:
       - key: ANTHROPIC_API_KEY
         sync: false
 
-  - type: worker
-    name: pulsegrid-worker
-    runtime: docker
-    dockerfilePath: ./backend/Dockerfile
-    dockerContext: ./backend
-    plan: free
-    dockerCommand: node src/worker.js
-    envVars:
-      - key: API_URL
-        sync: false
-      - key: PROJECT_API_KEY
-        sync: false
-      - key: WORKER_QUEUES
-        value: default
-      - key: WORKER_CONCURRENCY
-        value: 5
-      - key: WORKER_POLL_INTERVAL_MS
-        value: 1000
+  
